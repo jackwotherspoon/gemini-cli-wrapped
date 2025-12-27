@@ -20,6 +20,12 @@ Generate a personalized "Wrapped"-style summary of your [Gemini CLI](https://gem
 Run directly without installing:
 
 ```bash
+npx gemini-wrapped
+```
+
+or with Bun:
+
+```bash
 bunx gemini-wrapped
 ```
 
