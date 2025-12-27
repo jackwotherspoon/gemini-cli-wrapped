@@ -109,7 +109,7 @@ export function WrappedTemplate({ stats }: WrappedTemplateProps) {
               </div>
     
               {/* Most Active Day */}
-              <div style={{ ...components.statBox, flex: 0.6, display: "flex", flexDirection: "column", height: 222, gap: space(4), border: `1px solid ${colors.surfaceBorder}` }}>
+              <div style={{ ...components.statBox, flex: 0.8, display: "flex", flexDirection: "column", height: 222, gap: space(4), border: `1px solid ${colors.surfaceBorder}` }}>
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <div style={{ ...components.sectionHeader, display: "flex" }}>MOST ACTIVE DAY</div>
                   <div style={{ display: "flex", fontSize: fontSize("xl"), color: colors.text.secondary, marginTop: space(2) }}>
@@ -122,7 +122,7 @@ export function WrappedTemplate({ stats }: WrappedTemplateProps) {
               </div>
     
                {/* Weekly Activity Chart */}
-               <div style={{ ...components.statBox, flex: 1.4, display: "flex", flexDirection: "column", height: 222, border: `1px solid ${colors.surfaceBorder}` }}>
+               <div style={{ ...components.statBox, flex: 1.2, display: "flex", flexDirection: "column", height: 222, border: `1px solid ${colors.surfaceBorder}` }}>
                  <div style={{ ...components.sectionHeader, display: "flex" }}>WEEKLY</div>
                  <div style={{ display: "flex", alignItems: "flex-end", height: 100, gap: space(2), marginTop: space(4), flexDirection: "row" }}>
                    {stats.weekdayActivity.counts.map((count, i) => {
@@ -277,7 +277,7 @@ export function WrappedTemplate({ stats }: WrappedTemplateProps) {
             </div>
     
           <div style={{ display: "flex", justifyContent: "center", flexDirection: "row", marginTop: space(8) }}>
-            <div style={{ display: "flex", color: colors.accent.primary, fontSize: fontSize("lg"), fontWeight: typography.weight.medium }}>geminicli.com</div>
+            <div style={{ display: "flex", color: colors.accent.primary, fontSize: fontSize("xl"), fontWeight: typography.weight.medium }}>geminicli.com</div>
           </div>
         </div>
       );
