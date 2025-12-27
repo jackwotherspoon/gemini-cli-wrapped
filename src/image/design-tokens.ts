@@ -39,9 +39,9 @@ export const colors = {
 
   // Accent colors
   accent: {
-    primary: "#89B4FA", // AccentBlue
+    primary: "#CBA6F7", // AccentPurple
     primaryHover: "#74C7EC", // Sapphire? or just lighter blue
-    secondary: "#CBA6F7", // AccentPurple
+    secondary: "#89B4FA", // AccentBlue
     tertiary: "#F9E2AF", // AccentYellow
     cyan: "#89DCEB", // AccentCyan
     green: "#A6E3A1", // AccentGreen
@@ -56,29 +56,15 @@ export const colors = {
     info: "#89B4FA", // AccentBlue
   },
 
-  // Heatmap colors - Blue progression based on GradientColors and AccentBlue
-  // Gradient: ['#4796E4', '#847ACE', '#C3677F']
+  // Heatmap colors - Lightest to Darkest progression
   heatmap: {
-    empty: "#313244", // Surface0/Empty
-    level1: "#45475A", // Surface1
-    level2: "#585B70", // Surface2
-    level3: "#4796E4", // Gradient Start
-    level4: "#89B4FA", // AccentBlue
-    level5: "#847ACE", // Gradient Mid
-    level6: "#CBA6F7", // AccentPurple
-    level7: "#C3677F", // Gradient End
-  },
-
-  // Streak colors - similar progression
-  streak: {
-    empty: "#313244",
-    level1: "#45475A",
-    level2: "#585B70",
-    level3: "#4796E4",
-    level4: "#89B4FA",
-    level5: "#847ACE",
-    level6: "#C3677F",
-    level7: "#F38BA8", // AccentRed for max streak? Or maybe Green?
+    empty: "#313244", // Base empty
+    level1: "#45475A", // Subtle increase
+    level2: "#585B70", // Medium low
+    level3: "#B4BEFE", // Lavender (lightest color)
+    level4: "#CBA6F7", // Accent Purple
+    level5: "#89B4FA", // Accent Blue
+    level6: "#7287FD", // Deep Blue (darkest/most intense)
   },
 } as const;
 
@@ -104,6 +90,7 @@ export const typography = {
     "4xl": 56,
     "5xl": 64,
     "6xl": 72,
+    "7xl": 80,
   },
   lineHeight: {
     none: 1,
@@ -142,8 +129,8 @@ export const spacing = {
 
 export const layout = {
   canvas: {
-    width: 1500,
-    height: 1400,
+    width: 1600,
+    height: 1600,
   },
   padding: {
     horizontal: 64,
@@ -219,16 +206,6 @@ export const HEATMAP_COLORS = {
   4: colors.heatmap.level4,
   5: colors.heatmap.level5,
   6: colors.heatmap.level6,
-} as const;
-
-export const STREAK_COLORS = {
-  0: colors.streak.empty,
-  1: colors.streak.level1,
-  2: colors.streak.level2,
-  3: colors.streak.level3,
-  4: colors.streak.level4,
-  5: colors.streak.level5,
-  6: colors.streak.level7,
 } as const;
 
 export function space(key: keyof typeof spacing): number {

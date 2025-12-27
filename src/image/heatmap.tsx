@@ -1,10 +1,9 @@
 import { generateWeeksForYear, getIntensityLevel } from "../utils/dates";
-import { colors, typography, spacing, components, HEATMAP_COLORS, STREAK_COLORS, layout } from "./design-tokens";
+import { colors, typography, spacing, components, HEATMAP_COLORS, layout } from "./design-tokens";
 
 interface HeatmapProps {
   dailyActivity: Map<string, number>;
   year: number;
-  maxStreakDays?: Set<string>;
 }
 
 interface MonthLabel {
@@ -21,7 +20,7 @@ const CELL_RADIUS = components.heatmapCell.borderRadius;
 const LEGEND_CELL_SIZE = components.legend.cellSize;
 const LEGEND_GAP = components.legend.gap;
 
-export function ActivityHeatmap({ dailyActivity, year, maxStreakDays }: HeatmapProps) {
+export function ActivityHeatmap({ dailyActivity, year }: HeatmapProps) {
   const weeks = generateWeeksForYear(year);
 
   const counts = Array.from(dailyActivity.values());
@@ -35,11 +34,14 @@ export function ActivityHeatmap({ dailyActivity, year, maxStreakDays }: HeatmapP
         display: "flex",
         flexDirection: "column",
         gap: spacing[2],
+        alignItems: "center",
       }}
     >
-      <MonthLabelsRow labels={monthLabels} />
-      <HeatmapGrid weeks={weeks} dailyActivity={dailyActivity} maxStreakDays={maxStreakDays} maxCount={maxCount} />
-      <HeatmapLegend />
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+        <MonthLabelsRow labels={monthLabels} />
+        <HeatmapGrid weeks={weeks} dailyActivity={dailyActivity} maxCount={maxCount} />
+        <HeatmapLegend />
+      </div>
     </div>
   );
 }
@@ -78,11 +80,10 @@ function MonthLabelsRow({ labels }: { labels: MonthLabel[] }) {
 interface HeatmapGridProps {
   weeks: (string | null)[][];
   dailyActivity: Map<string, number>;
-  maxStreakDays?: Set<string>;
   maxCount: number;
 }
 
-function HeatmapGrid({ weeks, dailyActivity, maxStreakDays, maxCount }: HeatmapGridProps) {
+function HeatmapGrid({ weeks, dailyActivity, maxCount }: HeatmapGridProps) {
   return (
     <div
       style={{
@@ -92,7 +93,7 @@ function HeatmapGrid({ weeks, dailyActivity, maxStreakDays, maxCount }: HeatmapG
       }}
     >
       {weeks.map((week, weekIndex) => (
-        <WeekColumn key={weekIndex} week={week} dailyActivity={dailyActivity} maxStreakDays={maxStreakDays} maxCount={maxCount} />
+        <WeekColumn key={weekIndex} week={week} dailyActivity={dailyActivity} maxCount={maxCount} />
       ))}
     </div>
   );
@@ -101,11 +102,10 @@ function HeatmapGrid({ weeks, dailyActivity, maxStreakDays, maxCount }: HeatmapG
 interface WeekColumnProps {
   week: (string | null)[];
   dailyActivity: Map<string, number>;
-  maxStreakDays?: Set<string>;
   maxCount: number;
 }
 
-function WeekColumn({ week, dailyActivity, maxStreakDays, maxCount }: WeekColumnProps) {
+function WeekColumn({ week, dailyActivity, maxCount }: WeekColumnProps) {
   return (
     <div
       style={{
@@ -115,7 +115,7 @@ function WeekColumn({ week, dailyActivity, maxStreakDays, maxCount }: WeekColumn
       }}
     >
       {week.map((dateStr, dayIndex) => (
-        <DayCell key={dayIndex} dateStr={dateStr} dailyActivity={dailyActivity} maxStreakDays={maxStreakDays} maxCount={maxCount} />
+        <DayCell key={dayIndex} dateStr={dateStr} dailyActivity={dailyActivity} maxCount={maxCount} />
       ))}
     </div>
   );
@@ -124,17 +124,14 @@ function WeekColumn({ week, dailyActivity, maxStreakDays, maxCount }: WeekColumn
 interface DayCellProps {
   dateStr: string | null;
   dailyActivity: Map<string, number>;
-  maxStreakDays?: Set<string>;
   maxCount: number;
 }
 
-function DayCell({ dateStr, dailyActivity, maxStreakDays, maxCount }: DayCellProps) {
+function DayCell({ dateStr, dailyActivity, maxCount }: DayCellProps) {
   const count = dateStr ? dailyActivity.get(dateStr) || 0 : 0;
   const intensity = getIntensityLevel(count, maxCount) as keyof typeof HEATMAP_COLORS;
-  const isStreakDay = dateStr && maxStreakDays?.has(dateStr);
-  const colorPalette = isStreakDay ? STREAK_COLORS : HEATMAP_COLORS;
   // @ts-ignore
-  const color = colorPalette[intensity];
+  const color = HEATMAP_COLORS[intensity];
 
   return (
     <div

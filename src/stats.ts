@@ -1,6 +1,26 @@
 import type { RawSessionData } from "./collector";
-import type { GeminiStats, ModelStats, WeekdayActivity } from "./types";
+import type { GeminiStats, ModelStats, WeekdayActivity, LanguageStats } from "./types";
 import { format, differenceInDays, parseISO } from "date-fns";
+import { calculateCost } from "./pricing";
+
+const EXTENSION_MAP: Record<string, string> = {
+  'ts': 'TypeScript', 'tsx': 'TypeScript',
+  'js': 'JavaScript', 'jsx': 'JavaScript',
+  'py': 'Python',
+  'rs': 'Rust',
+  'go': 'Go',
+  'rb': 'Ruby',
+  'java': 'Java',
+  'cpp': 'C++', 'cc': 'C++', 'hpp': 'C++', 'c': 'C',
+  'md': 'Markdown',
+  'html': 'HTML', 'css': 'CSS',
+  'sh': 'Shell', 'bash': 'Shell', 'zsh': 'Shell',
+  'json': 'JSON', 'yaml': 'YAML', 'yml': 'YAML',
+  'sql': 'SQL',
+  'swift': 'Swift',
+  'kt': 'Kotlin',
+  'php': 'PHP'
+};
 
 export function processStats(sessions: RawSessionData[], year: number): GeminiStats {
   let totalInputTokens = 0;
@@ -9,9 +29,12 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
   let totalThoughtTokens = 0;
   let totalTokens = 0;
   let totalMessages = 0;
+  let totalGeminiMessages = 0;
   let totalToolCalls = 0;
+  let totalCost = 0;
   const projectHashes = new Set<string>();
   const modelCounts = new Map<string, number>();
+  const languageCounts = new Map<string, number>();
   const dailyActivity = new Map<string, number>();
   const weekdayCounts: [number, number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0, 0];
   
@@ -37,6 +60,7 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
       }
 
       if (msg.type === 'gemini') {
+        totalGeminiMessages++;
         if (msg.model) {
           modelCounts.set(msg.model, (modelCounts.get(msg.model) || 0) + 1);
         }
@@ -47,10 +71,27 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
           totalCachedTokens += msg.tokens.cached || 0;
           totalThoughtTokens += msg.tokens.thoughts || 0;
           totalTokens += msg.tokens.total || 0;
+
+          if (msg.model) {
+             // Thoughts tokens are billed at the output rate
+             const combinedOutput = (msg.tokens.output || 0) + (msg.tokens.thoughts || 0);
+             totalCost += calculateCost(msg.model, msg.tokens.input || 0, combinedOutput, msg.tokens.cached || 0);
+          }
         }
 
         if (msg.toolCalls) {
           totalToolCalls += msg.toolCalls.length;
+          
+          for (const call of msg.toolCalls) {
+            const filePath = call.args?.file_path || call.args?.path || call.args?.dir_path;
+            if (filePath && typeof filePath === 'string') {
+              const ext = filePath.split('.').pop()?.toLowerCase();
+              if (ext && EXTENSION_MAP[ext]) {
+                const lang = EXTENSION_MAP[ext];
+                languageCounts.set(lang, (languageCounts.get(lang) || 0) + 1);
+              }
+            }
+          }
         }
       }
     }
@@ -61,7 +102,18 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
     .map(([name, count]) => ({
       name,
       count,
-      percentage: totalMessages > 0 ? (count / totalMessages) * 100 : 0
+      percentage: totalGeminiMessages > 0 ? (count / totalGeminiMessages) * 100 : 0
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  // Top Languages
+  const totalLanguageActions = Array.from(languageCounts.values()).reduce((a, b) => a + b, 0);
+  const topLanguages: LanguageStats[] = Array.from(languageCounts.entries())
+    .map(([name, count]) => ({
+      name,
+      count,
+      percentage: totalLanguageActions > 0 ? (count / totalLanguageActions) * 100 : 0
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
@@ -164,11 +216,14 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
     totalTokens,
     totalToolCalls,
     topModels,
+    topLanguages,
     dailyActivity,
     mostActiveDay,
     weekdayActivity,
     maxStreak,
     currentStreak,
-    maxStreakDays
+    maxStreakDays,
+    totalCost,
+    hasUsageCost: totalCost > 0
   };
 }

@@ -4,6 +4,12 @@ export interface ModelStats {
   percentage: number;
 }
 
+export interface LanguageStats {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
 export interface WeekdayActivity {
   counts: [number, number, number, number, number, number, number];
   mostActiveDay: number;
@@ -30,11 +36,18 @@ export interface GeminiStats {
   totalThoughtTokens: number;
   totalTokens: number;
   
+  // Cost
+  totalCost: number;
+  hasUsageCost: boolean;
+  
   // Tools
   totalToolCalls: number;
 
   // Models
   topModels: ModelStats[];
+  
+  // Languages
+  topLanguages: LanguageStats[];
 
   // Activity
   dailyActivity: Map<string, number>; // "yyyy-mm-dd" -> count
