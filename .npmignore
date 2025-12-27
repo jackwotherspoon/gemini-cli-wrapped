@@ -1,0 +1,36 @@
+# Source files
+src/
+scripts/build.ts
+scripts/build-npm.ts
+
+# Assets (bundled into binary)
+assets/
+
+# Development
+*.ts
+tsconfig.json
+bun.lock
+
+# Build artifacts
+dist/
+npm/
+
+# Git
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__/

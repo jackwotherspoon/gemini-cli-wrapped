@@ -1,0 +1,34 @@
+{
+  "name": "gemini-cli-wrapped",
+  "version": "1.0.0",
+  "description": "Generate a personalized wrapped-style summary of your Gemini CLI usage",
+  "type": "module",
+  "bin": {
+    "gemini-wrapped": "./bin/gemini-wrapped"
+  },
+  "scripts": {
+    "start": "bun src/index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun run scripts/build.ts",
+    "publish": "bun run scripts/publish.ts",
+    "clean": "rm -rf dist",
+    "postinstall": "bunup"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-wasm": "^2.6.2",
+    "date-fns": "^3.3.1",
+    "glob": "^10.3.10",
+    "react": "^19.2.3",
+    "satori": "^0.18.3",
+    "xdg-basedir": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19.2.7",
+    "bunup": "^0.16.10",
+    "typescript": "^5.0.0",
+    "@types/glob": "^8.1.0"
+  }
+}
