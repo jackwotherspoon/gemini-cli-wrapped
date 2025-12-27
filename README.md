@@ -46,6 +46,12 @@ bunx gemini-wrapped
 Gemini Wrapped reads data from your local Gemini CLI installation (~/.gemini/tmp).
 No data is sent anywhere. Everything is processed locally.
 
+## Acknowledgements
+
+Special thanks to the following projects which provided the inspiration and starting point for this tool:
+- [opencode-wrapped](https://github.com/moddi3/opencode-wrapped)
+- [cc-wrapped](https://github.com/numman-ali/cc-wrapped)
+
 ---
 
 <div align="center">
