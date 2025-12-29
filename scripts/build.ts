@@ -34,6 +34,7 @@ export const buildTargets = async (version: string) => {
           version: version,
           os: [item.os === "win32" ? "win32" : item.os],
           cpu: [item.arch],
+          repository: pkg.repository,
         },
         null,
         2

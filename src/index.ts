@@ -13,8 +13,9 @@ import { copyImageToClipboard } from "./clipboard";
 import { formatNumber } from "./utils/format";
 import { isWrappedAvailable } from "./utils/dates";
 import type { GeminiStats } from "./types";
+import pkg from "../package.json";
 
-const VERSION = "1.0.0";
+const VERSION = pkg.version;
 
 function printHelp() {
   console.log(`
