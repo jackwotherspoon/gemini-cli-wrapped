@@ -1,7 +1,11 @@
 {
   "name": "gemini-wrapped",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "description": "Generate a personalized wrapped-style summary of your Gemini CLI usage",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackwotherspoon/gemini-cli-wrapped.git"
+  },
   "type": "module",
   "bin": {
     "gemini-wrapped": "./bin/gemini-wrapped"
@@ -25,10 +29,17 @@
     "xdg-basedir": "^5.1.0"
   },
   "devDependencies": {
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.2",
+    "@semantic-release/npm": "^13.1.3",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@types/bun": "latest",
+    "@types/glob": "^8.1.0",
     "@types/react": "^19.2.7",
     "bunup": "^0.16.10",
-    "typescript": "^5.0.0",
-    "@types/glob": "^8.1.0"
+    "semantic-release": "^25.0.2",
+    "typescript": "^5.0.0"
   }
 }

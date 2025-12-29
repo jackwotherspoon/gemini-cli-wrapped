@@ -57,6 +57,7 @@ console.log("\n📁 Preparing main package...");
 
 await $`mkdir -p ./dist/${targetpackageName}/bin`;
 await $`cp -r ./bin ./dist/${targetpackageName}/`;
+await $`cp README.md LICENSE dist/${targetpackageName}/`;
 await $`cp scripts/postinstall.mjs dist/${targetpackageName}/postinstall.mjs`;
 
 await Bun.file(`./dist/${targetpackageName}/package.json`).write(
@@ -68,7 +69,7 @@ await Bun.file(`./dist/${targetpackageName}/package.json`).write(
       bin: { [targetpackageName]: `./bin/${targetpackageName}` },
       scripts: { postinstall: "node ./postinstall.mjs" },
       optionalDependencies: binaries,
-      // repository: pkg.repository,
+      repository: pkg.repository,
       // homepage: pkg.homepage,
       // bugs: pkg.bugs,
       keywords: pkg.keywords,
@@ -97,7 +98,7 @@ for (const [name] of Object.entries(binaries)) {
     await $`npm publish --access public --dry-run --tag dry-run`.cwd(targetPath);
     console.log(`✅ Would publish ${name}`);
   } else {
-    await $`npm publish --access public`.cwd(targetPath);
+    await $`npm publish --access public --provenance`.cwd(targetPath);
     console.log(`✅ Published ${name}`);
   }
 }
@@ -110,7 +111,7 @@ if (dryRun) {
   await $`npm publish --access public --dry-run --tag dry-run`.cwd(mainPackagePath);
   console.log(`✅ Would publish ${pkg.name}`);
 } else {
-  await $`npm publish --access public`.cwd(mainPackagePath);
+  await $`npm publish --access public --provenance`.cwd(mainPackagePath);
   console.log(`✅ Published ${pkg.name}`);
 }
 
@@ -119,3 +120,22 @@ console.log(`\n${"─".repeat(50)}`);
 console.log(`\n✅ ${dryRun ? "Dry run" : "Publish"} complete!\n`);
 console.log(`Version: ${version}`);
 console.log(`Packages: ${Object.keys(binaries).length + 1}`);
+
+// Prepare binaries for GitHub release
+console.log("\n📦 Preparing binaries for GitHub release...");
+const binariesDir = path.join(dir, "dist", "binaries");
+await $`mkdir -p ${binariesDir}`;
+
+const platforms = fs.readdirSync(path.join(dir, "dist")).filter((p) => p !== pkg.name && p !== targetpackageName && p !== "binaries");
+
+for (const p of platforms) {
+  const binaryExt = p.includes("windows") ? ".exe" : "";
+  const sourcePath = path.join(dir, "dist", p, "bin", `${targetpackageName}${binaryExt}`);
+  const assetName = `${p}${binaryExt}`;
+  const assetPath = path.join(binariesDir, assetName);
+
+  if (fs.existsSync(sourcePath)) {
+    fs.copyFileSync(sourcePath, assetPath);
+    console.log(`   ✅ Prepared ${assetName}`);
+  }
+}
