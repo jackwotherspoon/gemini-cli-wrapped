@@ -10,7 +10,7 @@ Generate a personalized "Wrapped"-style summary of your [Gemini CLI](https://gem
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?logo=bun&logoColor=white)](https://bun.sh)
 
-<img src="assets/images/demo-wrapped.png" width="70%" alt="Gemini Wrapped Example">
+<img src="https://raw.githubusercontent.com/jackwotherspoon/gemini-cli-wrapped/main/assets/images/demo-wrapped.png" width="70%" alt="Gemini Wrapped Example">
 
 </div>
 
