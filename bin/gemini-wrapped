@@ -1,2 +1,87 @@
-#!/usr/bin/env bun
-import "../src/index.ts";
+#!/usr/bin/env node
+
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import { dirname, join } from "node:path";
+import { platform as osPlatform, arch as osArch } from "node:os";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+function run(target, args = process.argv.slice(2)) {
+  const result = spawnSync(target, args, {
+    stdio: "inherit",
+  });
+  if (result.error) {
+    console.error(result.error.message);
+    process.exit(1);
+  }
+  const code = typeof result.status === "number" ? result.status : 0;
+  process.exit(code);
+}
+
+const platformMap = {
+  darwin: "darwin",
+  linux: "linux",
+  win32: "windows",
+};
+const archMap = {
+  x64: "x64",
+  arm64: "arm64",
+};
+
+let platform = platformMap[osPlatform()];
+if (!platform) {
+  platform = osPlatform();
+}
+let arch = archMap[osArch()];
+if (!arch) {
+  arch = osArch();
+}
+const base = "gemini-wrapped-" + platform + "-" + arch;
+const binary = platform === "windows" ? "gemini-wrapped.exe" : "gemini-wrapped";
+
+function findBinary(startDir) {
+  // Check if it's right next to us (e.g. from postinstall)
+  const localBinary = join(startDir, binary);
+  if (fs.existsSync(localBinary) && localBinary !== __filename) {
+    return localBinary;
+  }
+
+  // Search in node_modules for platform-specific package
+  let current = startDir;
+  for (;;) {
+    const modules = join(current, "node_modules");
+    if (fs.existsSync(modules)) {
+      const entries = fs.readdirSync(modules);
+      for (const entry of entries) {
+        if (!entry.startsWith(base)) {
+          continue;
+        }
+        const candidate = join(modules, entry, "bin", binary);
+        if (fs.existsSync(candidate)) {
+          return candidate;
+        }
+      }
+    }
+    const parent = dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return null;
+}
+
+const resolved = findBinary(__dirname);
+if (!resolved) {
+  console.error(
+    'It seems that your package manager failed to install the right version of gemini-wrapped CLI for your platform. You can try manually installing "' +
+      base +
+      '" package'
+  );
+  process.exit(1);
+}
+
+run(resolved);
