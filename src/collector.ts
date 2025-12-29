@@ -32,7 +32,7 @@ export async function collectGeminiSessions(year: number): Promise<RawSessionDat
   const pattern = join(GEMINI_TMP_DIR, "*", "chats", "session-*.json");
   const sessionFiles = await glob(pattern, { windowsPathsNoEscape: true });
   
-  const sessions: RawSessionData[] = [];
+  const sessionMap = new Map<string, RawSessionData>();
 
   for (const file of sessionFiles) {
     try {
@@ -44,11 +44,14 @@ export async function collectGeminiSessions(year: number): Promise<RawSessionDat
         continue;
       }
 
-      sessions.push(data);
+      const existing = sessionMap.get(data.sessionId);
+      if (!existing || new Date(data.lastUpdated) > new Date(existing.lastUpdated)) {
+        sessionMap.set(data.sessionId, data);
+      }
     } catch (e) {
       continue;
     }
   }
 
-  return sessions;
+  return Array.from(sessionMap.values());
 }
