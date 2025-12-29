@@ -56,15 +56,15 @@ export const colors = {
     info: "#89B4FA", // AccentBlue
   },
 
-  // Heatmap colors - Lightest to Darkest progression
+  // Heatmap colors - Blue to Purple (Light to Dark) using Gemini CLI accents
   heatmap: {
     empty: "#313244", // Base empty
-    level1: "#45475A", // Subtle increase
-    level2: "#585B70", // Medium low
-    level3: "#B4BEFE", // Lavender (lightest color)
-    level4: "#CBA6F7", // Accent Purple
-    level5: "#89B4FA", // Accent Blue
-    level6: "#7287FD", // Deep Blue (darkest/most intense)
+    level1: "#B4BEFE", // Lavender
+    level2: "#89B4FA", // AccentBlue
+    level3: "#CBA6F7", // AccentPurple
+    level4: "#A594FD", // Deep Lavender
+    level5: "#7287FD", // Lavender/Blue
+    level6: "#8839EF", // Deep Purple
   },
 } as const;
 
