@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Postinstall script for oc-wrapped
+ * Postinstall script for gemini-wrapped
  *
  * This script runs after npm install and symlinks the correct platform-specific
  * binary to the bin directory. It auto-detects:
@@ -109,7 +109,7 @@ function getPackageName() {
   }
 
   // Build package name parts
-  const parts = ["oc-wrapped", platform, arch];
+  const parts = ["gemini-wrapped", platform, arch];
 
   // Add baseline suffix for x64 without AVX2
   if (arch === "x64" && !detectAVX2()) {
@@ -128,7 +128,7 @@ function getPackageName() {
  * Find the binary from the platform package
  */
 function findBinary(packageName) {
-  const binaryName = os.platform() === "win32" ? "oc-wrapped.exe" : "oc-wrapped";
+  const binaryName = os.platform() === "win32" ? "gemini-wrapped.exe" : "gemini-wrapped";
 
   try {
     const packageJsonPath = require.resolve(`${packageName}/package.json`);
@@ -201,13 +201,11 @@ async function main() {
     const packageName = getPackageName();
 
     if (!packageName) {
-      console.error(`oc-wrapped: Unsupported platform: ${os.platform()}-${os.arch()}`);
-      console.error("Please download the binary manually from:");
-      console.error("https://github.com/moddi3/opencode-wrapped/releases");
+      console.error(`gemini-wrapped: Unsupported platform: ${os.platform()}-${os.arch()}`);
       process.exit(0); // Exit gracefully
     }
 
-    console.log(`oc-wrapped: Detected platform package: ${packageName}`);
+    console.log(`gemini-wrapped: Detected platform package: ${packageName}`);
 
     const result = findBinary(packageName);
 
@@ -217,7 +215,7 @@ async function main() {
       const basePackage = baseParts.join("-");
 
       if (basePackage !== packageName) {
-        console.log(`oc-wrapped: Trying fallback package: ${basePackage}`);
+        console.log(`gemini-wrapped: Trying fallback package: ${basePackage}`);
         const fallbackResult = findBinary(basePackage);
 
         if (fallbackResult) {
@@ -226,16 +224,14 @@ async function main() {
         }
       }
 
-      console.error(`oc-wrapped: Could not find binary for ${packageName}`);
+      console.error(`gemini-wrapped: Could not find binary for ${packageName}`);
       console.error("The optional dependency may have failed to install.");
-      console.error("Please download the binary manually from:");
-      console.error("https://github.com/moddi3/opencode-wrapped/releases");
       process.exit(0);
     }
 
     linkBinary(result.binaryPath, result.binaryName);
   } catch (error) {
-    console.error("oc-wrapped: Postinstall error:", error.message);
+    console.error("gemini-wrapped: Postinstall error:", error.message);
     process.exit(0); // Exit gracefully to not break npm install
   }
 }

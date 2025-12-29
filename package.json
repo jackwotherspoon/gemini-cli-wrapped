@@ -1,6 +1,6 @@
 {
   "name": "gemini-wrapped",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Generate a personalized wrapped-style summary of your Gemini CLI usage",
   "type": "module",
   "bin": {
