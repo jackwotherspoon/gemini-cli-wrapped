@@ -51,7 +51,10 @@ export const GEMINI_PRICING: Record<string, ModelPricing> = {
  * Returns 0 if model is not recognized.
  */
 export function calculateCost(model: string, inputTokens: number, outputTokens: number, cachedTokens: number = 0): number {
-  const baseModel = Object.keys(GEMINI_PRICING).find(key => model.startsWith(key));
+  // Sort keys by length descending to ensure the longest (most specific) prefix matches first
+  const sortedModelKeys = Object.keys(GEMINI_PRICING).sort((a, b) => b.length - a.length);
+  const baseModel = sortedModelKeys.find(key => model.startsWith(key));
+  
   if (!baseModel) return 0;
 
   const pricing = GEMINI_PRICING[baseModel];
