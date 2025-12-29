@@ -184,17 +184,26 @@ async function main() {
 }
 
 function generateTweetUrl(stats: GeminiStats): string {
-  const text = [
-    `my ${stats.year} gemini-cli wrapped:`,
-    ``,
-    `${formatNumber(stats.totalSessions)} sessions`,
-    `${formatNumber(stats.totalMessages)} messages`,
-    `${formatNumber(stats.totalTokens)} tokens`,
-    `${stats.maxStreak} day streak`,
-    ``,
-    `get yours: geminicli.com`,
-  ].join("\n");
+  const lines: string[] = [];
+  lines.push(`Gemini CLI Wrapped ${stats.year} 📊`);
+  lines.push("");
+  lines.push(`Total Tokens: ${formatNumber(stats.totalTokens)}`);
+  lines.push(`Total Messages: ${formatNumber(stats.totalMessages)}`);
+  lines.push(`Total Sessions: ${formatNumber(stats.totalSessions)}`);
+  lines.push("");
+  lines.push(`Longest Streak: ${stats.maxStreak} days`);
+  lines.push(`Top Model: ${stats.topModels[0]?.name ?? "N/A"}`);
+  lines.push(`Top Language: ${stats.topLanguages[0]?.name ?? "N/A"}`);
 
+  lines.push("");
+  lines.push("Get yours:");
+  lines.push("❯ npx gemini-wrapped");
+  lines.push("");
+  lines.push("Credit: @JackWoth98 @moddi3io @nummanali");
+  lines.push("");
+  lines.push("(Paste image with CMD/CTRL+V)");
+
+  const text = lines.join("\n");
   const url = new URL("https://x.com/intent/tweet");
   url.searchParams.set("text", text);
   return url.toString();
