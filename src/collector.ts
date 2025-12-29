@@ -24,6 +24,58 @@ export async function checkGeminiDataExists(): Promise<boolean> {
   }
 }
 
+export function mergeSessions(sessions: RawSessionData[]): RawSessionData[] {
+  const sessionGroups = new Map<string, RawSessionData[]>();
+
+  for (const session of sessions) {
+    if (!sessionGroups.has(session.sessionId)) {
+      sessionGroups.set(session.sessionId, []);
+    }
+    sessionGroups.get(session.sessionId)!.push(session);
+  }
+
+  const mergedSessions: RawSessionData[] = [];
+
+  for (const [sessionId, group] of sessionGroups.entries()) {
+    if (group.length === 0) continue;
+
+    const messageMap = new Map<string, any>();
+    let earliestStart = new Date(group[0].startTime);
+    let latestUpdate = new Date(group[0].lastUpdated);
+    const projectHash = group[0].projectHash;
+
+    for (const session of group) {
+      const start = new Date(session.startTime);
+      const update = new Date(session.lastUpdated);
+      
+      if (start < earliestStart) earliestStart = start;
+      if (update > latestUpdate) latestUpdate = update;
+
+      for (const msg of session.messages) {
+        const existing = messageMap.get(msg.id);
+        // Keep the version of the message that has tokens/metadata if available
+        if (!existing || (msg.tokens && !existing.tokens) || (msg.toolCalls && !existing.toolCalls)) {
+          messageMap.set(msg.id, msg);
+        }
+      }
+    }
+
+    const mergedMessages = Array.from(messageMap.values()).sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+
+    mergedSessions.push({
+      sessionId,
+      projectHash,
+      startTime: earliestStart.toISOString(),
+      lastUpdated: latestUpdate.toISOString(),
+      messages: mergedMessages
+    });
+  }
+
+  return mergedSessions;
+}
+
 export async function collectGeminiSessions(year: number): Promise<RawSessionData[]> {
   if (!(await checkGeminiDataExists())) {
     return [];
@@ -32,7 +84,7 @@ export async function collectGeminiSessions(year: number): Promise<RawSessionDat
   const pattern = join(GEMINI_TMP_DIR, "*", "chats", "session-*.json");
   const sessionFiles = await glob(pattern, { windowsPathsNoEscape: true });
   
-  const sessionMap = new Map<string, RawSessionData>();
+  const rawSessions: RawSessionData[] = [];
 
   for (const file of sessionFiles) {
     try {
@@ -44,14 +96,11 @@ export async function collectGeminiSessions(year: number): Promise<RawSessionDat
         continue;
       }
 
-      const existing = sessionMap.get(data.sessionId);
-      if (!existing || new Date(data.lastUpdated) > new Date(existing.lastUpdated)) {
-        sessionMap.set(data.sessionId, data);
-      }
+      rawSessions.push(data);
     } catch (e) {
       continue;
     }
   }
 
-  return Array.from(sessionMap.values());
+  return mergeSessions(rawSessions);
 }
