@@ -6,8 +6,10 @@
 
 Generate a personalized "Wrapped"-style summary of your [Gemini CLI](https://geminicli.com) usage.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?logo=bun&logoColor=white)](https://bun.sh)
+
+<img src="assets/images/demo-wrapped.png" width="100%" alt="Gemini Wrapped Example">
 
 </div>
 
