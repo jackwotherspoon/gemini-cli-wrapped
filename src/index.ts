@@ -5,13 +5,13 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import os from "node:os";
 
-import { checkGeminiDataExists, collectGeminiSessions } from "./collector";
+import { checkGeminiDataExists, collectGeminiSessions, getAbsoluteFirstSessionDate } from "./collector";
 import { processStats } from "./stats";
 import { generateImage } from "./image/generator";
 import { displayInTerminal, getTerminalName } from "./terminal/display";
 import { copyImageToClipboard } from "./clipboard";
 import { formatNumber } from "./utils/format";
-import { isWrappedAvailable } from "./utils/dates";
+import { isWrappedAvailable, getWrappedPeriod } from "./utils/dates";
 import type { GeminiStats } from "./types";
 import pkg from "../package.json";
 
@@ -61,9 +61,10 @@ async function main() {
 
   p.intro("gemini wrapped");
 
-  const requestedYear = values.year ? parseInt(values.year, 10) : new Date().getFullYear();
+  const requestedYear = values.year ? parseInt(values.year, 10) : undefined;
+  const period = getWrappedPeriod(requestedYear);
 
-  const availability = isWrappedAvailable(requestedYear);
+  const availability = isWrappedAvailable(requestedYear || new Date().getFullYear());
   if (!availability.available) {
     if (Array.isArray(availability.message)) {
       availability.message.forEach((line) => p.log.warn(line));
@@ -85,13 +86,14 @@ async function main() {
 
   let stats: GeminiStats;
   try {
-    const rawSessions = await collectGeminiSessions(requestedYear);
+    const rawSessions = await collectGeminiSessions(period.startDate, period.endDate);
+    const absoluteFirstSessionDate = await getAbsoluteFirstSessionDate();
     if (rawSessions.length === 0) {
       spinner.stop("No data found");
-      p.cancel(`No Gemini CLI activity found for ${requestedYear}`);
+      p.cancel(`No Gemini CLI activity found for ${period.label}`);
       process.exit(0);
     }
-    stats = processStats(rawSessions, requestedYear);
+    stats = processStats(rawSessions, period.label, period.startDate, period.endDate, absoluteFirstSessionDate);
   } catch (error) {
     spinner.stop("Failed to collect stats");
     p.cancel(`Error: ${error}`);
@@ -110,7 +112,11 @@ async function main() {
     stats.mostActiveDay && `Most Active:   ${stats.mostActiveDay.formattedDate}`,
   ].filter(Boolean) as string[];
 
-  p.note(summaryLines.join("\n"), `Your ${requestedYear} in Gemini CLI`);
+  p.note(summaryLines.join("\n"), `Your ${period.label} in Gemini CLI`);
+
+  if (period.isRolling) {
+    p.log.info(`Tip: Use --year <YYYY> to see stats for a specific year.`);
+  }
 
   // Generate image
   spinner.start("Generating your wrapped image...");
@@ -132,7 +138,7 @@ async function main() {
     p.log.info(`Terminal (${getTerminalName()}) doesn't support inline images`);
   }
 
-  const filename = `gemini-wrapped-${requestedYear}.png`;
+  const filename = `gemini-wrapped-${period.label.replace(/\s+/g, "-").toLowerCase()}.png`;
   const { success, error } = await copyImageToClipboard(image.fullSize, filename);
 
   if (success) {
@@ -185,7 +191,7 @@ async function main() {
 
 function generateTweetUrl(stats: GeminiStats): string {
   const lines: string[] = [];
-  lines.push(`Gemini CLI Wrapped ${stats.year} 📊`);
+  lines.push(`Gemini CLI Wrapped ${stats.periodLabel} 📊`);
   lines.push("");
   lines.push(`Total Tokens: ${formatNumber(stats.totalTokens)}`);
   lines.push(`Total Messages: ${formatNumber(stats.totalMessages)}`);

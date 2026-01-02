@@ -1,9 +1,10 @@
-import { generateWeeksForYear, getIntensityLevel } from "../utils/dates";
+import { generateWeeksForRange, getIntensityLevel } from "../utils/dates";
 import { colors, typography, spacing, components, HEATMAP_COLORS, layout } from "./design-tokens";
 
 interface HeatmapProps {
   dailyActivity: Map<string, number>;
-  year: number;
+  startDate: Date;
+  endDate: Date;
 }
 
 interface MonthLabel {
@@ -20,8 +21,8 @@ const CELL_RADIUS = components.heatmapCell.borderRadius;
 const LEGEND_CELL_SIZE = components.legend.cellSize;
 const LEGEND_GAP = components.legend.gap;
 
-export function ActivityHeatmap({ dailyActivity, year }: HeatmapProps) {
-  const weeks = generateWeeksForYear(year);
+export function ActivityHeatmap({ dailyActivity, startDate, endDate }: HeatmapProps) {
+  const weeks = generateWeeksForRange(startDate, endDate);
 
   const counts = Array.from(dailyActivity.values());
   const maxCount = counts.length > 0 ? Math.max(...counts) : 0;
@@ -205,6 +206,7 @@ function HeatmapLegend() {
     </div>
   );
 }
+// ... (omitted parts are same but I should check getMonthLabels)
 
 function getMonthLabels(weeks: (string | null)[][], cellSize: number, gap: number): MonthLabel[] {
   const labels: MonthLabel[] = [];

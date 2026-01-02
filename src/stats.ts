@@ -22,7 +22,13 @@ const EXTENSION_MAP: Record<string, string> = {
   'php': 'PHP'
 };
 
-export function processStats(sessions: RawSessionData[], year: number): GeminiStats {
+export function processStats(
+  sessions: RawSessionData[], 
+  periodLabel: string, 
+  startDate: Date, 
+  endDate: Date,
+  absoluteFirstSessionDate: Date | null
+): GeminiStats {
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
   let totalCachedTokens = 0;
@@ -38,24 +44,26 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
   const dailyActivity = new Map<string, number>();
   const weekdayCounts: [number, number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0, 0];
   
-  let firstSessionDate: Date | null = null;
+  // We calculate this for internal use within the period, but we use absoluteFirstSessionDate for the final report
+  let firstSessionInPeriod: Date | null = null;
 
   for (const session of sessions) {
     projectHashes.add(session.projectHash);
     
     const sessionStartTime = new Date(session.startTime);
-    if (!firstSessionDate || sessionStartTime < firstSessionDate) {
-      firstSessionDate = sessionStartTime;
+    if (!firstSessionInPeriod || sessionStartTime < firstSessionInPeriod) {
+      firstSessionInPeriod = sessionStartTime;
     }
 
     for (const msg of session.messages) {
       if (msg.type === 'user' || msg.type === 'gemini') {
         totalMessages++;
         
-        const dateKey = format(new Date(msg.timestamp), "yyyy-MM-dd");
+        const timestamp = new Date(msg.timestamp);
+        const dateKey = format(timestamp, "yyyy-MM-dd");
         dailyActivity.set(dateKey, (dailyActivity.get(dateKey) || 0) + 1);
         
-        const dayOfWeek = new Date(msg.timestamp).getDay(); // 0 = Sunday
+        const dayOfWeek = timestamp.getDay(); // 0 = Sunday
         weekdayCounts[dayOfWeek]++;
       }
 
@@ -203,9 +211,12 @@ export function processStats(sessions: RawSessionData[], year: number): GeminiSt
   }
 
   return {
-    year,
-    firstSessionDate,
-    daysSinceFirstSession: firstSessionDate ? differenceInDays(new Date(), firstSessionDate) : 0,
+    year: endDate.getFullYear(), // Default year for backward compatibility
+    periodLabel,
+    startDate,
+    endDate,
+    firstSessionDate: absoluteFirstSessionDate,
+    daysSinceFirstSession: absoluteFirstSessionDate ? differenceInDays(new Date(), absoluteFirstSessionDate) : 0,
     totalSessions: sessions.length,
     totalMessages,
     totalProjects: projectHashes.size,

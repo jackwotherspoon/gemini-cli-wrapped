@@ -1,14 +1,64 @@
-import { isAfter, startOfYear, endOfYear, format } from "date-fns";
+import { isAfter, startOfYear, endOfYear, format, subDays, subYears, isSameYear } from "date-fns";
 
 export interface Availability {
   available: boolean;
   message?: string | string[];
 }
 
+export interface WrappedPeriod {
+  startDate: Date;
+  endDate: Date;
+  label: string;
+  isRolling: boolean;
+}
+
+export function getWrappedPeriod(requestedYear?: number): WrappedPeriod {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  // Explicit year requested
+  if (requestedYear) {
+    if (requestedYear < currentYear) {
+      return {
+        startDate: startOfYear(new Date(requestedYear, 0, 1)),
+        endDate: endOfYear(new Date(requestedYear, 0, 1)),
+        label: requestedYear.toString(),
+        isRolling: false
+      };
+    } else {
+      // requestedYear >= currentYear (isWrappedAvailable handles future years)
+      return {
+        startDate: startOfYear(new Date(requestedYear, 0, 1)),
+        endDate: now,
+        label: requestedYear.toString(),
+        isRolling: false
+      };
+    }
+  }
+
+  // Default behavior (no year provided)
+  // If it's December, we show the current year's wrapped
+  if (now.getMonth() === 11) {
+    return {
+      startDate: startOfYear(now),
+      endDate: now,
+      label: currentYear.toString(),
+      isRolling: false
+    };
+  }
+
+  // Otherwise, show the last 365 days
+  return {
+    startDate: subYears(now, 1),
+    endDate: now,
+    label: "Last 365 Days",
+    isRolling: true
+  };
+}
+
 export function isWrappedAvailable(year: number): Availability {
   const now = new Date();
   const yearStart = startOfYear(new Date(year, 0, 1));
-  const wrapStart = new Date(year, 11, 1); // December 1st
 
   if (isAfter(yearStart, now)) {
     return {
@@ -17,62 +67,59 @@ export function isWrappedAvailable(year: number): Availability {
     };
   }
 
-  if (year < now.getFullYear()) {
-    return { available: true };
-  }
-
-  if (isAfter(wrapStart, now)) {
-    const daysLeft = Math.ceil((wrapStart.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    return {
-      available: false,
-      message: [
-        `Gemini CLI Wrapped ${year} isn't ready yet.`,
-        `Come back in ${daysLeft} days (December 1st)!`,
-      ],
-    };
-  }
-
   return { available: true };
 }
 
 export function generateWeeksForYear(year: number): string[][] {
-  const weeks: string[][] = [];
   const startDate = new Date(year, 0, 1);
+  const now = new Date();
+  const isCurrentYear = year === now.getFullYear();
+  const endDate = isCurrentYear ? now : new Date(year, 11, 31);
+  
+  return generateWeeksForRange(startDate, endDate);
+}
+
+export function generateWeeksForRange(startDate: Date, endDate: Date): string[][] {
+  const weeks: string[][] = [];
   const startDay = startDate.getDay();
   const adjustedStart = new Date(startDate);
+  
+  // Start from the beginning of the week
   if (startDay !== 0) {
     adjustedStart.setDate(startDate.getDate() - startDay);
   }
 
-  const now = new Date();
-  const isCurrentYear = year === now.getFullYear();
-  const endDate = isCurrentYear ? now : new Date(year, 11, 31);
-
   let currentDate = new Date(adjustedStart);
   let currentWeek: string[] = [];
 
-  while (currentDate <= endDate || currentWeek.length > 0) {
-    const dayOfWeek = currentDate.getDay();
+  // Continue until we've processed the endDate or finished the last week
+  while (currentDate <= endDate || (currentWeek.length > 0 && currentWeek.length < 7)) {
     const dateStr = formatDateKey(currentDate);
 
-    if (currentDate.getFullYear() === year && currentDate <= endDate) {
+    // Only include the date if it's within the requested range
+    if (currentDate >= startDate && currentDate <= endDate) {
       currentWeek.push(dateStr);
-    } else if (currentDate.getFullYear() === year) {
+    } else {
       currentWeek.push("");
     }
 
-    if (dayOfWeek === 6) {
-      if (currentWeek.length > 0 && currentWeek.some((d) => d !== "")) {
+    if (currentWeek.length === 7) {
+      if (currentWeek.some(d => d !== "")) {
         weeks.push(currentWeek);
       }
       currentWeek = [];
     }
 
     currentDate.setDate(currentDate.getDate() + 1);
-    if (currentDate.getFullYear() > year + 1) break;
+    
+    // Safety break (approx 1 year + buffer)
+    if (weeks.length > 60) break;
   }
 
-  if (currentWeek.length > 0 && currentWeek.some((d) => d !== "")) {
+  if (currentWeek.length > 0 && currentWeek.some(d => d !== "")) {
+    while (currentWeek.length < 7) {
+      currentWeek.push("");
+    }
     weeks.push(currentWeek);
   }
 

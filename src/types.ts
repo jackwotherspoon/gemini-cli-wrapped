@@ -18,7 +18,10 @@ export interface WeekdayActivity {
 }
 
 export interface GeminiStats {
-  year: number;
+  year: number; // Keep for backward compatibility or primary year
+  periodLabel: string;
+  startDate: Date;
+  endDate: Date;
 
   // Time-based
   firstSessionDate: Date | null;

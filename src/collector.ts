@@ -76,7 +76,7 @@ export function mergeSessions(sessions: RawSessionData[]): RawSessionData[] {
   return mergedSessions;
 }
 
-export async function collectGeminiSessions(year: number): Promise<RawSessionData[]> {
+export async function collectGeminiSessions(startDate: Date, endDate: Date): Promise<RawSessionData[]> {
   if (!(await checkGeminiDataExists())) {
     return [];
   }
@@ -92,7 +92,7 @@ export async function collectGeminiSessions(year: number): Promise<RawSessionDat
       const data = JSON.parse(content) as RawSessionData;
       
       const startTime = new Date(data.startTime);
-      if (startTime.getFullYear() !== year) {
+      if (startTime < startDate || startTime > endDate) {
         continue;
       }
 
@@ -103,4 +103,31 @@ export async function collectGeminiSessions(year: number): Promise<RawSessionDat
   }
 
   return mergeSessions(rawSessions);
+}
+
+export async function getAbsoluteFirstSessionDate(): Promise<Date | null> {
+  if (!(await checkGeminiDataExists())) {
+    return null;
+  }
+
+  const pattern = join(GEMINI_TMP_DIR, "*", "chats", "session-*.json");
+  const sessionFiles = await glob(pattern, { windowsPathsNoEscape: true });
+  
+  let earliestDate: Date | null = null;
+
+  for (const file of sessionFiles) {
+    try {
+      const content = await readFile(file, "utf-8");
+      const data = JSON.parse(content) as RawSessionData;
+      const startTime = new Date(data.startTime);
+      
+      if (!earliestDate || startTime < earliestDate) {
+        earliestDate = startTime;
+      }
+    } catch (e) {
+      continue;
+    }
+  }
+
+  return earliestDate;
 }

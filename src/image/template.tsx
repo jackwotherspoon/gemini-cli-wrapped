@@ -88,7 +88,9 @@ export function WrappedTemplate({ stats }: WrappedTemplateProps) {
             >
               <div style={{ fontSize: fontSize("4xl"), color: colors.text.secondary, display: "flex", flexDirection: "row", gap: 12 }}>
                 <span style={{ display: "flex" }}>wrapped</span>
-                <span style={{ display: "flex", fontWeight: typography.weight.bold, color: colors.accent.primary }}>{stats.year}</span>
+                <span style={{ display: "flex", fontWeight: typography.weight.bold, color: colors.accent.primary }}>
+                  {stats.periodLabel === "Last 365 Days" ? "365" : stats.periodLabel}
+                </span>
               </div>
             </div>
           </div>
@@ -155,7 +157,7 @@ export function WrappedTemplate({ stats }: WrappedTemplateProps) {
             <div style={{ display: "flex", width: "100%", marginTop: space(8), flexDirection: "column", alignItems: "center" }}>
                 <div style={{ width: "100%", maxWidth: layout.content.width, display: "flex", flexDirection: "column" }}>
                   <div style={{ ...components.sectionHeader, marginBottom: space(4), display: "flex" }}>ACTIVITY</div>
-                  <ActivityHeatmap dailyActivity={stats.dailyActivity} year={stats.year} />
+                  <ActivityHeatmap dailyActivity={stats.dailyActivity} startDate={stats.startDate} endDate={stats.endDate} />
                 </div>
             </div>
     
